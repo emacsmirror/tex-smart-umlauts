@@ -2,7 +2,7 @@
 
 ;; Author: Frank Fischer <frank-fischer at shadow-soft.de>
 ;; Keywords: tex, wp
-;; Version: 1.4.0
+;; Version: 1.5.0
 ;; URL: http://hub.darcs.net/lyro/tex-smart-umlauts
 
 ;; This file is NOT part of GNU Emacs.
@@ -80,6 +80,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; Change Log:
+;; 1.5.0
+;;
+;;  * ensure the `tex-smart-umlauts' text property is non-sticky
+;;  * use keyword arguments in `define-minor-mode'
+;;
 ;; 1.4.0
 ;;
 ;;  * `tex-smart-umlauts-reencode-all` now either removes all
@@ -278,7 +283,7 @@ according to `tex-smart-umlauts-encodings'."
   "Mark and decode all tex encoded characters in region.
 Only characters between the buffer positions FROM and TO are
 decoded. If FROM and TO are nil the whole buffer is decoded. This
-function registers 'tex-smart-umlauts' has buffer file format, so
+function registers 'tex-smart-umlauts' as buffer file format, so
 decoded characters are encoded again when the buffer is saved."
   (if (region-active-p)
       (setq from (region-beginning)
@@ -457,7 +462,9 @@ file."
 ;;;###autoload
 (define-minor-mode tex-smart-umlauts-mode
   "Minor mode for seamless translation of LaTeX special characters."
-  nil nil nil
+  :init-value nil
+  :lighter nil
+  :keymap nil
    (cond
    (tex-smart-umlauts-mode
     (unless (and tex-smart-umlauts--decode-table
@@ -469,6 +476,10 @@ file."
    (t
     (setq buffer-file-format (delq 'tex-smart-umlauts buffer-file-format))
     (remove-hook 'before-revert-hook #'tex-smart-umlauts--before-revert t))))
+
+;; Ensure the `tex-smart-umlauts' text-property does not extend to
+;; newly inserted adjacent characters (i.e. make it rear-nonsticky).
+(add-to-list 'text-property-default-nonsticky '(tex-smart-umlauts . t))
 
 (provide 'tex-smart-umlauts)
 
